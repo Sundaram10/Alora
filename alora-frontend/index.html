@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALORA | Smart Campus Complaint Intelligence & Recommendation System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-logo">A</div>
+                <div class="brand-info">
+                    <h1>ALORA</h1>
+                    <p>Smart Campus Complaint Intelligence & Recommendation System</p>
+                </div>
+            </div>
+
+            <!-- Role Switcher -->
+            <div class="role-switcher-bar">
+                <button class="role-btn active" data-role="STUDENT">
+                    <span>🎓</span> Student / Resident
+                </button>
+                <button class="role-btn" data-role="ADMIN">
+                    <span>🛡️</span> Admin & Dispatcher
+                </button>
+                <button class="role-btn" data-role="TECH">
+                    <span>🔧</span> Maintenance Desk
+                </button>
+                <button class="role-btn" data-role="ML">
+                    <span>🧠</span> AI / ML Center
+                </button>
+            </div>
+
+            <!-- Service Live Indicators -->
+            <div class="service-status-pills">
+                <div class="status-pill">
+                    <div class="status-dot" id="backend-dot"></div>
+                    <span id="backend-text">Spring Boot: 8080</span>
+                </div>
+                <div class="status-pill">
+                    <div class="status-dot" id="ml-dot"></div>
+                    <span id="ml-text">FastAPI ML: 8001</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- ==========================================================
+             1. STUDENT / CAMPUS RESIDENT TAB
+             ========================================================== -->
+        <section class="tab-pane active" data-tab="STUDENT">
+            <div class="grid-2">
+                <!-- Submit Complaint Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span>📝</span> Log a New Campus Issue
+                        </div>
+                        <span class="badge badge-medium">AI Assisted</span>
+                    </div>
+
+                    <!-- Live Duplicate Detection Alert Banner -->
+                    <div class="duplicate-alert-banner" id="duplicate-alert">
+                        <div class="dup-header">
+                            <span>⚠️ Similar Complaint Detected Nearby!</span>
+                            <span class="dup-badge" id="dup-score">90% Match</span>
+                        </div>
+                        <div class="dup-body">
+                            A technician may already be en-route for: <br/>
+                            <strong id="dup-title">Water leaking under sink</strong> at <span id="dup-location">Science Block</span><br/>
+                            <small>Existing Ticket: <strong id="dup-ticket">ALR-2026-0002</strong>. You may still submit if your issue is distinct.</small>
+                        </div>
+                    </div>
+
+                    <form id="complaint-form">
+                        <div class="form-group">
+                            <label class="form-label" for="comp-title">Issue Summary / Title</label>
+                            <input type="text" class="form-control" id="comp-title" placeholder="e.g., Sparks coming from switchboard, or Wi-Fi down" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="comp-building">Campus Building / Zone</label>
+                            <select class="form-control" id="comp-building" required>
+                                <option value="" disabled selected>Select Campus Location</option>
+                                <option value="Hostel Block A">Hostel Block A (Aryabhata)</option>
+                                <option value="Hostel Block B">Hostel Block B (Bhaskara)</option>
+                                <option value="Hostel Block C">Hostel Block C (Charaka)</option>
+                                <option value="Science & Technology Block">Science & Technology Block</option>
+                                <option value="Computer Science Block">Computer Science & AI Block</option>
+                                <option value="Academic Complex">Academic Lecture Theatres</option>
+                                <option value="Central Library">Central Campus Library</option>
+                                <option value="Student Dining Hall">Student Dining & Cafeteria</option>
+                                <option value="Sports Complex">Indoor Sports Complex</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="comp-dept">Responsible Department</label>
+                            <select class="form-control" id="comp-dept">
+                                <option value="" selected>✨ Auto-Detect (AI Smart Routing)</option>
+                                <option value="6">🧹 Housekeeping & Sanitation</option>
+                                <option value="1">⚡ Electrical Maintenance</option>
+                                <option value="2">🔧 Plumbing & Water Works</option>
+                                <option value="3">💻 IT & Network Operations</option>
+                                <option value="4">❄️ HVAC & Climate Control</option>
+                                <option value="5">🔨 Civil Works & Carpentry</option>
+                            </select>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label" for="comp-floor">Floor / Level</label>
+                                <input type="text" class="form-control" id="comp-floor" placeholder="e.g., 3rd Floor">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="comp-room">Room / Area No.</label>
+                                <input type="text" class="form-control" id="comp-room" placeholder="e.g., Room 302 / Lab 4">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="comp-desc">Detailed Description</label>
+                            <textarea class="form-control" id="comp-desc" placeholder="Describe what is wrong, safety risks, or symptoms observed..." required></textarea>
+                        </div>
+
+                        <!-- Real-time AI Triage Preview -->
+                        <div class="ai-preview-box">
+                            <div class="ai-preview-header">
+                                <span>🤖</span> Live AI Pre-Triaging Preview
+                            </div>
+                            <div class="ai-chips">
+                                <span class="ai-chip">🏷️ <strong id="chip-category">Predicting...</strong></span>
+                                <span class="ai-chip">🏢 <strong id="chip-department">Routing...</strong></span>
+                                <span class="ai-chip">⚡ Priority: <strong id="chip-severity">MEDIUM</strong></span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem;">
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                <span>🚀</span> Submit Campus Complaint
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Complaints & Live Tracking Timeline -->
+                <div>
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span>🔍</span> Quick Ticket Lookup
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" class="form-control" id="track-search-input" placeholder="Enter Tracking ID (e.g. ALR-2026-0001)">
+                            <button class="btn btn-secondary" onclick="alert('Tracking lookup active!')">Track</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span>📋</span> My Active Complaints & Timeline
+                            </div>
+                            <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="loadStudentComplaints()">Refresh</button>
+                        </div>
+                        <div id="student-complaints-list">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================================
+             2. ADMIN & DISPATCHER TAB
+             ========================================================== -->
+        <section class="tab-pane" data-tab="ADMIN">
+            <!-- KPI Summary Cards -->
+            <div class="grid-4" style="margin-bottom: 1.5rem;">
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Issues</div>
+                    <div class="kpi-value" id="kpi-total">0</div>
+                    <div class="kpi-sub">Across all campus blocks</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Pending / Triage</div>
+                    <div class="kpi-value" id="kpi-pending" style="color: var(--warning);">0</div>
+                    <div class="kpi-sub">Awaiting dispatch</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">In Progress</div>
+                    <div class="kpi-value" id="kpi-progress" style="color: var(--info);">0</div>
+                    <div class="kpi-sub">Technicians on-site</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Resolved (SLA avg)</div>
+                    <div class="kpi-value" id="kpi-hours" style="color: var(--success);">0h</div>
+                    <div class="kpi-sub"><span id="kpi-resolved">0</span> tickets completed</div>
+                </div>
+            </div>
+
+            <!-- Complaints Table with Filters -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🛡️</span> Smart Campus Dispatch Queue
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-secondary admin-filter-btn active" data-filter="ALL" onclick="setAdminFilter('ALL')">All</button>
+                        <button class="btn btn-secondary admin-filter-btn" data-filter="PENDING" onclick="setAdminFilter('PENDING')">Pending</button>
+                        <button class="btn btn-secondary admin-filter-btn" data-filter="IN_PROGRESS" onclick="setAdminFilter('IN_PROGRESS')">Active</button>
+                        <button class="btn btn-secondary admin-filter-btn" data-filter="RESOLVED" onclick="setAdminFilter('RESOLVED')">Resolved</button>
+                        <button class="btn btn-secondary admin-filter-btn" data-filter="DUPLICATES" onclick="setAdminFilter('DUPLICATES')">Duplicates (<span id="kpi-duplicates">0</span>)</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Issue & Location</th>
+                                <th>Category</th>
+                                <th>Department</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Technician</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-complaints-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================================
+             3. MAINTENANCE TECHNICIAN WORK DESK
+             ========================================================== -->
+        <section class="tab-pane" data-tab="TECH">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 800;">Technician Work Desk</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">View assigned work orders, SOP action checklists, and report resolution.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 0.85rem; font-weight: 600;">Active Technician:</span>
+                    <select class="form-control" id="tech-select" style="width: auto;">
+                        <option value="4" selected>Devendra Singh (Electrical Maintenance)</option>
+                        <option value="5">Manoj Kumar (Plumbing & Water Works)</option>
+                        <option value="6">Neha Reddy (IT & Network Operations)</option>
+                        <option value="7">Suresh Verma (HVAC & Climate Control)</option>
+                        <option value="8">Kiran More (Civil Works & Carpentry)</option>
+                        <option value="9">Raju Yadav (Housekeeping & Sanitation)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="tech-tickets-container">
+                <!-- Dynamically populated tickets -->
+            </div>
+        </section>
+
+        <!-- ==========================================================
+             4. AI / ML OPERATIONS & RETRAINING CENTER
+             ========================================================== -->
+        <section class="tab-pane" data-tab="ML">
+            <div class="grid-2" style="margin-bottom: 1.5rem;">
+                <!-- Model Performance Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span>🧠</span> AI Multi-Model Status & Metrics
+                        </div>
+                        <span class="badge badge-medium" id="ml-status">READY</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Category Model</div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);" id="ml-acc-cat">100%</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">TF-IDF + Calibrated LinearSVC</div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Department Routing</div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--secondary);" id="ml-acc-dept">100%</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">TF-IDF + Logistic Regression</div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Severity Classifier</div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--warning);" id="ml-acc-sev">100%</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Urgency & Hazard Scorer</div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Training Corpus</div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--success);" id="ml-samples">34 Cases</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Smart Campus Labeled Set</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                        Model Version: <strong id="ml-version">v1.2.0</strong> | Algorithm Suite: <strong>Scikit-Learn Multi-Pipeline</strong>
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-retrain" style="width: 100%;">
+                        <span>⚡</span> Trigger Model Retraining Pipeline
+                    </button>
+                </div>
+
+                <!-- Live ML Sandbox Playground -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span>🧪</span> Interactive AI Sandbox Playground
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Type any campus issue to test real-time categorization, routing, urgency detection, and duplicate scoring.
+                    </p>
+                    <div class="form-group">
+                        <textarea class="form-control" id="sim-text" placeholder="e.g. Exhaust fan burning in chemistry laboratory room 401..."></textarea>
+                    </div>
+                    <button class="btn btn-secondary" id="btn-sim-predict" style="margin-bottom: 1rem;">
+                        <span>🔮</span> Run Model Inference
+                    </button>
+                    <div id="sim-result">
+                        <!-- Output of simulation -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

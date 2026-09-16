@@ -1,0 +1,29 @@
+# Tools & Local Runtimes
+tools/
+*.zip
+
+# Java & Maven Build Outputs
+target/
+**/target/
+*.class
+
+# Database Files
+data/
+**/data/
+*.mv.db
+*.trace.db
+
+# Python Artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+
+# IDE & OS Metadata
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
