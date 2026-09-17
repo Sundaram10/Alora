@@ -8,9 +8,12 @@ from app.schemas.payload import (
     DuplicateCheckResponse,
     RetrainRequest,
     RetrainResponse,
-    MetricsResponse
+    MetricsResponse,
+    ImageAnomalyInput,
+    ImageAnomalyResult
 )
 from app.models.pipeline import pipeline_instance
+from app.models.image_anomaly_engine import ImageAnomalyEngine
 
 app = FastAPI(
     title="ALORA - Smart Campus ML Service",
@@ -59,11 +62,19 @@ def predict_complaint(complaint: ComplaintInput):
             building=complaint.location_building,
             floor=complaint.location_floor or "",
             room=complaint.location_room or "",
-            user_id=complaint.user_id
+            user_id=complaint.user_id,
+            photo_base64=complaint.photo_base64
         )
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+
+@app.post("/api/ml/analyze-image-anomaly", response_model=ImageAnomalyResult)
+def analyze_image_anomaly(payload: ImageAnomalyInput):
+    try:
+        return ImageAnomalyEngine.analyze_image(payload.get_base64())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image anomaly analysis error: {str(e)}")
 
 @app.post("/api/ml/check-duplicate", response_model=DuplicateCheckResponse)
 def check_duplicate(payload: DuplicateCheckInput):

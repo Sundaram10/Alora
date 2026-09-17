@@ -8,6 +8,22 @@ class ComplaintInput(BaseModel):
     location_floor: Optional[str] = Field(None, example="2nd Floor")
     location_room: Optional[str] = Field(None, example="Reading Room 201")
     user_id: Optional[int] = Field(None, example=2)
+    photo_base64: Optional[str] = None
+
+class ImageAnomalyInput(BaseModel):
+    photo_base64: Optional[str] = None
+    image_base64: Optional[str] = None
+
+    def get_base64(self) -> str:
+        return self.photo_base64 or self.image_base64 or ""
+
+class ImageAnomalyResult(BaseModel):
+    is_authentic: bool
+    authenticity_score: float
+    status: str
+    summary: Optional[str] = None
+    detected_anomalies: List[str] = []
+    metrics: Dict[str, Any] = {}
 
 class DuplicateCheckInput(BaseModel):
     title: str
@@ -48,6 +64,7 @@ class MLPredictionResult(BaseModel):
     estimated_resolution_hours: float
     duplicate_check: DuplicateCheckResponse
     recommendation: MLRecommendation
+    image_anomaly: Optional[ImageAnomalyResult] = None
     model_version: str
 
 class RetrainRequest(BaseModel):

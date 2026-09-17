@@ -21,41 +21,56 @@ KEYWORD_RULES = [
     (
         ["dustbin", "trash", "garbage", "rubbish", "litter", "waste", "clean", "cleaning", "sweep", "sweeping",
          "mop", "mopping", "filthy", "dirty", "washroom dirty", "toilet cleaning", "stench", "odor", "foul smell",
-         "stain", "cockroach", "pest control", "hygiene", "sanitary", "napkin", "overflow", "broom", "disinfection"],
+         "stain", "cockroach", "pest control", "hygiene", "sanitary", "napkin", "overflow", "broom", "disinfection",
+         "classroom not cleaned", "washroom cleaning required", "garbage not removed", "dustbin overflowing",
+         "corridor dirty", "spillage needs cleaning", "hostel cleaning required", "bus cleanliness issue"],
         "Sanitation",
         "Housekeeping & Sanitation"
     ),
     (
         ["ac", "air conditioner", "air conditioning", "cooling", "not cooling", "warm air", "chiller",
-         "thermostat", "duct", "condenser", "compressor", "ahu", "refrigerant", "fan coil", "airflow"],
+         "thermostat", "duct", "condenser", "compressor", "ahu", "refrigerant", "fan coil", "airflow",
+         "air conditioner not working", "air conditioner leaking", "fan speed problem", "room too hot",
+         "ventilation problem", "ac issue in library", "water heater not working"],
         "HVAC",
         "HVAC & Climate Control"
     ),
     (
         ["water leak", "leaking tap", "tap leak", "pipe burst", "faucet", "washbasin", "sink", "flush valve",
          "flush tank", "toilet flush", "drain", "drainage", "clogged drain", "sewer", "water tank", "motor pump",
-         "shower head", "no running water", "geyser", "water cooler"],
+         "shower head", "no running water", "geyser", "water cooler", "water leakage", "tap not working",
+         "pipe leakage", "wash basin blocked", "toilet water problem", "no water supply"],
         "Plumbing",
         "Plumbing & Water Works"
     ),
     (
         ["spark", "sparking", "flicker", "flickering", "tube light", "bulb", "mcb", "circuit breaker",
          "tripped", "switchboard", "socket", "power outlet", "live wire", "exposed wire", "electric shock",
-         "earthing", "power outage", "ceiling fan", "fan regulator", "ups", "blackout", "phase failure"],
+         "earthing", "power outage", "ceiling fan", "fan regulator", "ups", "blackout", "phase failure",
+         "light not working", "fan not working", "power socket damaged", "switch broken", "tube light flickering",
+         "room electrical issue", "light issue in library", "lab power problem", "security light issue"],
         "Electrical",
         "Electrical Maintenance"
     ),
     (
         ["wifi", "wi-fi", "internet", "router", "access point", "ethernet", "lan port", "lan cable",
          "switch port", "dns", "portal", "biometric", "projector", "hdmi", "smart board", "slow internet",
-         "packet loss", "operating system boot", "network down"],
+         "packet loss", "operating system boot", "network down", "wifi not working", "internet connection slow",
+         "network unavailable", "poor wifi signal", "lan port not working", "projector not working",
+         "computer not working", "speaker not working", "smart board issue", "printer not working",
+         "library computer issue", "lab equipment not working", "computer lab network issue",
+         "equipment maintenance required", "projector issue in lab"],
         "IT & Network",
         "IT & Network Operations"
     ),
     (
         ["door lock", "lock cylinder", "latch", "hinge", "window glass", "glass pane", "desk", "bench",
          "chair", "wobbling table", "cupboard", "wardrobe", "furniture", "whiteboard", "blackboard",
-         "ceiling tile", "cracked tile", "wall plaster", "broken leg", "door won't", "door jammed"],
+         "ceiling tile", "cracked tile", "wall plaster", "broken leg", "door won't", "door jammed",
+         "chair broken", "desk damaged", "bench damaged", "door handle broken", "window damaged",
+         "table needs repair", "hostel room issue", "bed repair needed", "chair issue in library",
+         "cctv not working", "access gate problem", "door lock problem", "emergency alarm issue",
+         "bus delay", "parking problem", "vehicle entry issue", "shuttle unavailable", "noise complaint"],
         "Civil & Carpentry",
         "Civil Works & Carpentry"
     )
@@ -86,7 +101,7 @@ class UnifiedMLPipeline:
         self.duplicate_engine = DuplicateDetectionEngine()
         print("[OK] ALORA ML Pipeline loaded successfully!")
 
-    def predict(self, title: str, description: str, building: str, floor: str = "", room: str = "", user_id: int = None) -> Dict[str, Any]:
+    def predict(self, title: str, description: str, building: str, floor: str = "", room: str = "", user_id: int = None, photo_base64: str = None) -> Dict[str, Any]:
         raw_text = f"{title} {description}".lower()
         full_text = f"{title} {description} {building}".lower()
 
@@ -124,12 +139,35 @@ class UnifiedMLPipeline:
             sev_pred = "HIGH"
             sev_conf = 0.88
         else:
-            sev_pred = self.sev_model.predict([full_text])[0]
-            sev_probs = self.sev_model.predict_proba([full_text])[0]
-            sev_conf = float(np.max(sev_probs))
+            import pandas as pd
+            input_df = pd.DataFrame([{
+                "full_text": full_text,
+                "priority": 3.0,
+                "affected_people": 10.0
+            }])
+            try:
+                sev_pred = self.sev_model.predict(input_df)[0]
+                if hasattr(self.sev_model, "predict_proba"):
+                    sev_probs = self.sev_model.predict_proba(input_df)[0]
+                    sev_conf = float(np.max(sev_probs))
+                else:
+                    sev_conf = 0.85
+            except Exception:
+                sev_pred = self.sev_model.predict([full_text])[0]
+                sev_conf = 0.85
 
         # 4. Estimated Resolution Hours
-        hours_pred = float(self.res_model.predict([full_text])[0])
+        import pandas as pd
+        input_df = pd.DataFrame([{
+            "full_text": full_text,
+            "priority": 3.0,
+            "affected_people": 10.0
+        }])
+        try:
+            hours_pred = float(self.res_model.predict(input_df)[0])
+        except Exception:
+            hours_pred = float(self.res_model.predict([full_text])[0])
+            
         # Bound between 1.0 hour and 48.0 hours
         hours_pred = max(1.0, min(48.0, round(hours_pred, 1)))
 
@@ -150,6 +188,12 @@ class UnifiedMLPipeline:
             location=building
         )
 
+        # 7. Image Anomaly & Fake Detection Analysis
+        from app.models.image_anomaly_engine import ImageAnomalyEngine
+        img_anomaly_res = None
+        if photo_base64:
+            img_anomaly_res = ImageAnomalyEngine.analyze_image(photo_base64)
+
         return {
             "predicted_category": cat_pred,
             "category_confidence": round(cat_conf, 3),
@@ -160,6 +204,7 @@ class UnifiedMLPipeline:
             "estimated_resolution_hours": hours_pred,
             "duplicate_check": dup_result,
             "recommendation": recs,
+            "image_anomaly": img_anomaly_res,
             "model_version": self.metadata.get("model_version", "v1.3.0")
         }
 

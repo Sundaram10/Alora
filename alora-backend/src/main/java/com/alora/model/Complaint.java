@@ -68,6 +68,12 @@ public class Complaint {
     @Column(name = "resolution_notes", columnDefinition = "TEXT")
     private String resolutionNotes;
 
+    @Column(name = "photo_url", columnDefinition = "LONGTEXT")
+    private String photoUrl;
+
+    @Column(name = "image_analysis", columnDefinition = "TEXT")
+    private String imageAnalysis;
+
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
@@ -137,6 +143,12 @@ public class Complaint {
 
     public String getResolutionNotes() { return resolutionNotes; }
     public void setResolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; }
+
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+
+    public String getImageAnalysis() { return imageAnalysis; }
+    public void setImageAnalysis(String imageAnalysis) { this.imageAnalysis = imageAnalysis; }
 
     public LocalDateTime getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }

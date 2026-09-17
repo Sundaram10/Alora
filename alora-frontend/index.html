@@ -38,15 +38,23 @@
                 </button>
             </div>
 
-            <!-- Service Live Indicators -->
-            <div class="service-status-pills">
-                <div class="status-pill">
-                    <div class="status-dot" id="backend-dot"></div>
-                    <span id="backend-text">Spring Boot: 8080</span>
+            <!-- Service Live Indicators & Auth Pill -->
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <div class="user-auth-pill" id="user-auth-pill" onclick="openLoginModal()" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.95); padding: 0.4rem 0.85rem; border-radius: 9999px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); cursor: pointer;">
+                    <span id="header-user-avatar" style="font-size: 1.1rem;">👤</span>
+                    <span id="header-user-name" style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">Aarav Patel</span>
+                    <span id="header-user-role" class="badge badge-medium" style="font-size: 0.7rem;">STUDENT</span>
+                    <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-left: 0.25rem;">🔑 Switch / Login</span>
                 </div>
-                <div class="status-pill">
-                    <div class="status-dot" id="ml-dot"></div>
-                    <span id="ml-text">FastAPI ML: 8001</span>
+                <div class="service-status-pills">
+                    <div class="status-pill">
+                        <div class="status-dot" id="backend-dot"></div>
+                        <span id="backend-text">Spring Boot: 8080</span>
+                    </div>
+                    <div class="status-pill">
+                        <div class="status-dot" id="ml-dot"></div>
+                        <span id="ml-text">FastAPI ML: 8001</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,12 +90,176 @@
 
                     <form id="complaint-form">
                         <div class="form-group">
-                            <label class="form-label" for="comp-title">Issue Summary / Title</label>
-                            <input type="text" class="form-control" id="comp-title" placeholder="e.g., Sparks coming from switchboard, or Wi-Fi down" required>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                                <label class="form-label" for="comp-title" style="margin-bottom:0;">Issue Summary / Title</label>
+                                <select id="quick-issue-selector" class="quick-issue-select" onchange="selectCommonIssue(this.value)">
+                                    <option value="" disabled selected>✨ Select Common Issue (64 Items)...</option>
+                                    <optgroup label="🔌 Electrical">
+                                        <option value="Light not working">Light not working</option>
+                                        <option value="Fan not working">Fan not working</option>
+                                        <option value="Power socket damaged">Power socket damaged</option>
+                                        <option value="Power outage">Power outage</option>
+                                        <option value="Switch broken">Switch broken</option>
+                                        <option value="Tube light flickering">Tube light flickering</option>
+                                    </optgroup>
+                                    <optgroup label="🚰 Plumbing">
+                                        <option value="Water leakage">Water leakage</option>
+                                        <option value="Tap not working">Tap not working</option>
+                                        <option value="Pipe leakage">Pipe leakage</option>
+                                        <option value="Wash basin blocked">Wash basin blocked</option>
+                                        <option value="Toilet water problem">Toilet water problem</option>
+                                        <option value="No water supply">No water supply</option>
+                                    </optgroup>
+                                    <optgroup label="🧹 Cleaning">
+                                        <option value="Classroom not cleaned">Classroom not cleaned</option>
+                                        <option value="Washroom cleaning required">Washroom cleaning required</option>
+                                        <option value="Garbage not removed">Garbage not removed</option>
+                                        <option value="Dustbin overflowing">Dustbin overflowing</option>
+                                        <option value="Corridor dirty">Corridor dirty</option>
+                                        <option value="Spillage needs cleaning">Spillage needs cleaning</option>
+                                    </optgroup>
+                                    <optgroup label="📶 WiFi / Network">
+                                        <option value="WiFi not working">WiFi not working</option>
+                                        <option value="Internet connection slow">Internet connection slow</option>
+                                        <option value="Network unavailable">Network unavailable</option>
+                                        <option value="Poor WiFi signal">Poor WiFi signal</option>
+                                        <option value="LAN port not working">LAN port not working</option>
+                                    </optgroup>
+                                    <optgroup label="🪑 Furniture">
+                                        <option value="Chair broken">Chair broken</option>
+                                        <option value="Desk damaged">Desk damaged</option>
+                                        <option value="Bench damaged">Bench damaged</option>
+                                        <option value="Door handle broken">Door handle broken</option>
+                                        <option value="Window damaged">Window damaged</option>
+                                        <option value="Table needs repair">Table needs repair</option>
+                                    </optgroup>
+                                    <optgroup label="❄️ HVAC">
+                                        <option value="Air conditioner not working">Air conditioner not working</option>
+                                        <option value="Air conditioner leaking">Air conditioner leaking</option>
+                                        <option value="Fan speed problem">Fan speed problem</option>
+                                        <option value="Room too hot">Room too hot</option>
+                                        <option value="Ventilation problem">Ventilation problem</option>
+                                    </optgroup>
+                                    <optgroup label="🖥️ IT / AV">
+                                        <option value="Projector not working">Projector not working</option>
+                                        <option value="Computer not working">Computer not working</option>
+                                        <option value="Speaker not working">Speaker not working</option>
+                                        <option value="Smart board issue">Smart board issue</option>
+                                        <option value="Printer not working">Printer not working</option>
+                                    </optgroup>
+                                    <optgroup label="🔐 Security">
+                                        <option value="CCTV not working">CCTV not working</option>
+                                        <option value="Security light issue">Security light issue</option>
+                                        <option value="Access gate problem">Access gate problem</option>
+                                        <option value="Door lock problem">Door lock problem</option>
+                                        <option value="Emergency alarm issue">Emergency alarm issue</option>
+                                    </optgroup>
+                                    <optgroup label="🚌 Transport">
+                                        <option value="Bus delay">Bus delay</option>
+                                        <option value="Bus cleanliness issue">Bus cleanliness issue</option>
+                                        <option value="Parking problem">Parking problem</option>
+                                        <option value="Vehicle entry issue">Vehicle entry issue</option>
+                                        <option value="Shuttle unavailable">Shuttle unavailable</option>
+                                    </optgroup>
+                                    <optgroup label="🏠 Hostel">
+                                        <option value="Hostel room issue">Hostel room issue</option>
+                                        <option value="Water heater not working">Water heater not working</option>
+                                        <option value="Room electrical issue">Room electrical issue</option>
+                                        <option value="Hostel cleaning required">Hostel cleaning required</option>
+                                        <option value="Bed repair needed">Bed repair needed</option>
+                                    </optgroup>
+                                    <optgroup label="📚 Library">
+                                        <option value="Library computer issue">Library computer issue</option>
+                                        <option value="AC issue in library">AC issue in library</option>
+                                        <option value="Light issue in library">Light issue in library</option>
+                                        <option value="Chair issue in library">Chair issue in library</option>
+                                        <option value="Noise complaint">Noise complaint</option>
+                                    </optgroup>
+                                    <optgroup label="🧪 Laboratory">
+                                        <option value="Lab equipment not working">Lab equipment not working</option>
+                                        <option value="Computer lab network issue">Computer lab network issue</option>
+                                        <option value="Lab power problem">Lab power problem</option>
+                                        <option value="Equipment maintenance required">Equipment maintenance required</option>
+                                        <option value="Projector issue in lab">Projector issue in lab</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <input type="text" class="form-control" id="comp-title" placeholder="e.g., Light not working, or Select from list above..." required list="common-issues-list">
+                            <datalist id="common-issues-list">
+                                <option value="Light not working"></option>
+                                <option value="Fan not working"></option>
+                                <option value="Power socket damaged"></option>
+                                <option value="Power outage"></option>
+                                <option value="Switch broken"></option>
+                                <option value="Tube light flickering"></option>
+                                <option value="Water leakage"></option>
+                                <option value="Tap not working"></option>
+                                <option value="Pipe leakage"></option>
+                                <option value="Wash basin blocked"></option>
+                                <option value="Toilet water problem"></option>
+                                <option value="No water supply"></option>
+                                <option value="Classroom not cleaned"></option>
+                                <option value="Washroom cleaning required"></option>
+                                <option value="Garbage not removed"></option>
+                                <option value="Dustbin overflowing"></option>
+                                <option value="Corridor dirty"></option>
+                                <option value="Spillage needs cleaning"></option>
+                                <option value="WiFi not working"></option>
+                                <option value="Internet connection slow"></option>
+                                <option value="Network unavailable"></option>
+                                <option value="Poor WiFi signal"></option>
+                                <option value="LAN port not working"></option>
+                                <option value="Chair broken"></option>
+                                <option value="Desk damaged"></option>
+                                <option value="Bench damaged"></option>
+                                <option value="Door handle broken"></option>
+                                <option value="Window damaged"></option>
+                                <option value="Table needs repair"></option>
+                                <option value="Air conditioner not working"></option>
+                                <option value="Air conditioner leaking"></option>
+                                <option value="Fan speed problem"></option>
+                                <option value="Room too hot"></option>
+                                <option value="Ventilation problem"></option>
+                                <option value="Projector not working"></option>
+                                <option value="Computer not working"></option>
+                                <option value="Speaker not working"></option>
+                                <option value="Smart board issue"></option>
+                                <option value="Printer not working"></option>
+                                <option value="CCTV not working"></option>
+                                <option value="Security light issue"></option>
+                                <option value="Access gate problem"></option>
+                                <option value="Door lock problem"></option>
+                                <option value="Emergency alarm issue"></option>
+                                <option value="Bus delay"></option>
+                                <option value="Bus cleanliness issue"></option>
+                                <option value="Parking problem"></option>
+                                <option value="Vehicle entry issue"></option>
+                                <option value="Shuttle unavailable"></option>
+                                <option value="Hostel room issue"></option>
+                                <option value="Water heater not working"></option>
+                                <option value="Room electrical issue"></option>
+                                <option value="Hostel cleaning required"></option>
+                                <option value="Bed repair needed"></option>
+                                <option value="Library computer issue"></option>
+                                <option value="AC issue in library"></option>
+                                <option value="Light issue in library"></option>
+                                <option value="Chair issue in library"></option>
+                                <option value="Noise complaint"></option>
+                                <option value="Lab equipment not working"></option>
+                                <option value="Computer lab network issue"></option>
+                                <option value="Lab power problem"></option>
+                                <option value="Equipment maintenance required"></option>
+                                <option value="Projector issue in lab"></option>
+                            </datalist>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" for="comp-building">Campus Building / Zone</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                                <label class="form-label" for="comp-building" style="margin-bottom:0;">Campus Building / Zone</label>
+                                <button type="button" class="btn-scanner-trigger" id="btn-open-scanner" onclick="openQRScannerModal()">
+                                    <span>📷</span> Scan Location QR / Tag
+                                </button>
+                            </div>
                             <select class="form-control" id="comp-building" required>
                                 <option value="" disabled selected>Select Campus Location</option>
                                 <option value="Hostel Block A">Hostel Block A (Aryabhata)</option>
@@ -129,6 +301,81 @@
                         <div class="form-group">
                             <label class="form-label" for="comp-desc">Detailed Description</label>
                             <textarea class="form-control" id="comp-desc" placeholder="Describe what is wrong, safety risks, or symptoms observed..." required></textarea>
+                        </div>
+
+                        <!-- Photo Attachment & Image Processing Studio -->
+                        <div class="form-group photo-upload-group">
+                            <div class="photo-section-header">
+                                <label class="form-label"><span>📸</span> Photo Attachment & AI Image Studio</label>
+                                <span class="badge badge-medium">Image Processing</span>
+                            </div>
+                            
+                            <div class="upload-dropzone" id="upload-dropzone">
+                                <input type="file" id="comp-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(event)">
+                                <div class="dropzone-content" id="dropzone-empty-state">
+                                    <div class="dropzone-icon">📷</div>
+                                    <div class="dropzone-text">
+                                        <strong>Drag & Drop or Click to Attach Issue Photo</strong>
+                                        <p>Auto-compressed, contrast enhanced, and diagnostic checked</p>
+                                    </div>
+                                    <div class="dropzone-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('comp-photo-input').click()">📁 Choose File</button>
+                                        <button type="button" class="btn btn-secondary" onclick="triggerCameraCapture()">📷 Take Photo</button>
+                                    </div>
+                                </div>
+
+                                <!-- Interactive Image Processing Studio -->
+                                <div id="image-processing-studio" style="display:none;">
+                                    <div class="studio-header">
+                                        <span class="studio-title">✨ Visual Image Processing & Diagnostics</span>
+                                        <button type="button" class="btn-remove-photo" onclick="removeSelectedPhoto()">✕ Remove</button>
+                                    </div>
+                                    
+                                    <div class="studio-workspace">
+                                        <div class="canvas-preview-container">
+                                            <canvas id="photo-canvas"></canvas>
+                                        </div>
+
+                                        <!-- Image Diagnostics Sidebar -->
+                                        <div class="image-diagnostics-panel">
+                                            <div class="diag-header">📊 Image Diagnostics & AI Shield</div>
+                                            <div class="diag-metric"><span>Authenticity:</span> <strong id="diag-authenticity" style="color: var(--success);">🛡️ Real Photo (100%)</strong></div>
+                                            <div class="diag-metric"><span>Dimensions:</span> <strong id="diag-dims">0 x 0</strong></div>
+                                            <div class="diag-metric"><span>File Size:</span> <strong id="diag-size">0 KB</strong></div>
+                                            <div class="diag-metric"><span>Sharpness:</span> <strong id="diag-sharpness">Calculated</strong></div>
+                                            <div class="diag-metric"><span>Luminance:</span> <strong id="diag-brightness">Optimal</strong></div>
+                                            <div class="diag-alert" id="diag-warning"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Filter Presets & Adjustment Sliders -->
+                                    <div class="studio-controls-bar">
+                                        <div class="filter-presets">
+                                            <button type="button" class="filter-btn active" data-filter="normal" onclick="applyPresetFilter('normal')">Original</button>
+                                            <button type="button" class="filter-btn" data-filter="enhance" onclick="applyPresetFilter('enhance')">✨ Auto-Enhance</button>
+                                            <button type="button" class="filter-btn" data-filter="lowlight" onclick="applyPresetFilter('lowlight')">💡 Low-Light Boost</button>
+                                            <button type="button" class="filter-btn" data-filter="grayscale" onclick="applyPresetFilter('grayscale')">🔳 High Contrast</button>
+                                        </div>
+
+                                        <div class="adjust-sliders">
+                                            <div class="slider-item">
+                                                <label>Brightness: <span id="val-brightness">0%</span></label>
+                                                <input type="range" id="slider-brightness" min="-50" max="50" value="0" oninput="updateImageAdjustments()">
+                                            </div>
+                                            <div class="slider-item">
+                                                <label>Contrast: <span id="val-contrast">0%</span></label>
+                                                <input type="range" id="slider-contrast" min="-50" max="50" value="0" oninput="updateImageAdjustments()">
+                                            </div>
+                                        </div>
+
+                                        <div class="transform-actions">
+                                            <button type="button" class="btn-icon-tool" onclick="rotateImage(-90)" title="Rotate Left">↺ 90°</button>
+                                            <button type="button" class="btn-icon-tool" onclick="rotateImage(90)" title="Rotate Right">↻ 90°</button>
+                                            <button type="button" class="btn-icon-tool" onclick="flipImageHorizontal()" title="Flip Horizontal">⇄ Flip</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Real-time AI Triage Preview -->
@@ -341,6 +588,107 @@
             </div>
         </section>
     </main>
+
+    <!-- QR & Asset Tag Scanner Modal -->
+    <div class="modal-overlay" id="qr-scanner-modal" style="display:none;">
+        <div class="scanner-modal-card">
+            <div class="scanner-modal-header">
+                <div class="scanner-modal-title">
+                    <span>📷</span> Campus Location QR & Asset Scanner
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeQRScannerModal()">✕</button>
+            </div>
+            <div class="scanner-viewport-box">
+                <video id="scanner-video" autoplay playsinline muted></video>
+                <canvas id="scanner-canvas" style="display:none;"></canvas>
+                
+                <!-- Animated Reticle & Target Line Overlay -->
+                <div class="scanner-frame-overlay">
+                    <div class="scanner-corner corner-tl"></div>
+                    <div class="scanner-corner corner-tr"></div>
+                    <div class="scanner-corner corner-bl"></div>
+                    <div class="scanner-corner corner-br"></div>
+                    <div class="scanner-laser-line"></div>
+                    <div class="scanner-instructions">Point camera at Campus QR Tag or Equipment Barcode</div>
+                </div>
+
+                <div class="scanner-controls-top">
+                    <button type="button" class="btn-scanner-ctrl" id="btn-toggle-torch" onclick="toggleScannerTorch()">⚡ Flash On</button>
+                    <button type="button" class="btn-scanner-ctrl" onclick="switchScannerCamera()">🔄 Switch Camera</button>
+                </div>
+            </div>
+
+            <!-- Quick Test Sample Tag Chips -->
+            <div class="scanner-presets-section">
+                <div class="preset-section-title">Or click a sample campus tag to test scanner auto-fill:</div>
+                <div class="scanner-preset-chips">
+                    <button type="button" class="scanner-chip" onclick="simulateQRScan('QR-HOSTEL-A-302', 'Hostel Block A', '3rd Floor', 'Room 302')">
+                        🏷️ Hostel Block A (Room 302)
+                    </button>
+                    <button type="button" class="scanner-chip" onclick="simulateQRScan('QR-LIB-READING-201', 'Central Library', '2nd Floor', 'Reading Room 201')">
+                        🏷️ Central Library (Room 201)
+                    </button>
+                    <button type="button" class="scanner-chip" onclick="simulateQRScan('QR-CS-LAB-401', 'Computer Science Block', '4th Floor', 'Lab 401')">
+                        🏷️ CS & AI Block (Lab 401)
+                    </button>
+                    <button type="button" class="scanner-chip" onclick="simulateQRScan('QR-ACAD-LTH-104', 'Academic Complex', 'Ground Floor', 'Lecture Hall 104')">
+                        🏷️ Academic Complex (Hall 104)
+                    </button>
+                    <button type="button" class="scanner-chip" onclick="simulateQRScan('QR-SPORTS-GYM-01', 'Sports Complex', '1st Floor', 'Gymnasium')">
+                        🏷️ Sports Complex (Gym)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User & Admin Login Modal -->
+    <div class="modal-overlay" id="login-modal" style="display: none;">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>🔐 ALORA Campus Authentication Portal</h3>
+                <button class="modal-close" onclick="closeLoginModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Auth Role Type Tabs -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+                    <button type="button" class="btn btn-secondary auth-tab-btn active" id="tab-btn-user" onclick="switchAuthTab('USER')" style="flex: 1;">👤 User / Student Login</button>
+                    <button type="button" class="btn btn-secondary auth-tab-btn" id="tab-btn-admin" onclick="switchAuthTab('ADMIN')" style="flex: 1;">🛡️ Admin Login</button>
+                </div>
+
+                <form id="auth-login-form">
+                    <div class="form-group">
+                        <label class="form-label" for="auth-email">Campus Email Address</label>
+                        <input type="email" class="form-control" id="auth-email" value="aarav.patel@alora.edu" placeholder="username@alora.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="auth-password">Password</label>
+                        <input type="password" class="form-control" id="auth-password" value="user123" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; font-weight: 700;">🔓 Authenticate & Access ALORA</button>
+                </form>
+
+                <!-- Quick 1-Click Login Account Selector -->
+                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.6rem;">⚡ Quick Demo Account Selector (1-Click Login):</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.4rem 0.6rem; justify-content: flex-start;" onclick="quickFillLogin('aarav.patel@alora.edu', 'user123', 'USER')">
+                            👤 Student (Aarav Patel)
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.4rem 0.6rem; justify-content: flex-start;" onclick="quickFillLogin('admin@alora.edu', 'admin123', 'ADMIN')">
+                            🛡️ Campus Admin
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.4rem 0.6rem; justify-content: flex-start;" onclick="quickFillLogin('sangeeta.sen@alora.edu', 'user123', 'USER')">
+                            👩‍🏫 Faculty (Prof. Sen)
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.4rem 0.6rem; justify-content: flex-start;" onclick="quickFillLogin('elec.dev@alora.edu', 'tech123', 'TECH')">
+                            🔧 Electrician (Devendra)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Notifications Container -->
     <div class="toast-container"></div>

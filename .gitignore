@@ -27,3 +27,5 @@ venv/
 *.iml
 .DS_Store
 Thumbs.db
+cropped_user_photo.png
+

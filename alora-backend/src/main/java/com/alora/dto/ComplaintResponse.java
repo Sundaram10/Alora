@@ -26,6 +26,8 @@ public class ComplaintResponse {
     private Double actualResolutionHours;
     private Boolean isDuplicate;
     private String resolutionNotes;
+    private String photoUrl;
+    private String imageAnalysis;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
 
@@ -62,6 +64,8 @@ public class ComplaintResponse {
         dto.setActualResolutionHours(c.getActualResolutionHours());
         dto.setIsDuplicate(c.getIsDuplicate());
         dto.setResolutionNotes(c.getResolutionNotes());
+        dto.setPhotoUrl(c.getPhotoUrl());
+        dto.setImageAnalysis(c.getImageAnalysis());
         dto.setCreatedAt(c.getCreatedAt());
         dto.setResolvedAt(c.getResolvedAt());
         return dto;
@@ -129,6 +133,12 @@ public class ComplaintResponse {
 
     public String getResolutionNotes() { return resolutionNotes; }
     public void setResolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; }
+
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+
+    public String getImageAnalysis() { return imageAnalysis; }
+    public void setImageAnalysis(String imageAnalysis) { this.imageAnalysis = imageAnalysis; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -54,6 +54,8 @@ public class ComplaintService {
         complaint.setLocationBuilding(request.getLocationBuilding());
         complaint.setLocationFloor(request.getLocationFloor());
         complaint.setLocationRoom(request.getLocationRoom());
+        complaint.setPhotoUrl(request.getPhotoUrl());
+        complaint.setImageAnalysis(request.getImageAnalysis());
         complaint.setTrackingNumber(generateTrackingNumber());
         complaint.setStatus(ComplaintStatus.PENDING);
 
@@ -179,23 +181,29 @@ public class ComplaintService {
     }
 
     public List<ComplaintResponse> getComplaintsByUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return complaintRepository.findByUserOrderByCreatedAtDesc(user)
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return List.of();
+        }
+        return complaintRepository.findByUserOrderByCreatedAtDesc(userOpt.get())
                 .stream().map(ComplaintResponse::fromEntity).collect(Collectors.toList());
     }
 
     public List<ComplaintResponse> getComplaintsByDepartment(Long departmentId) {
-        Department dept = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-        return complaintRepository.findByDepartmentOrderByCreatedAtDesc(dept)
+        Optional<Department> deptOpt = departmentRepository.findById(departmentId);
+        if (deptOpt.isEmpty()) {
+            return List.of();
+        }
+        return complaintRepository.findByDepartmentOrderByCreatedAtDesc(deptOpt.get())
                 .stream().map(ComplaintResponse::fromEntity).collect(Collectors.toList());
     }
 
     public List<ComplaintResponse> getComplaintsByTechnician(Long technicianId) {
-        User tech = userRepository.findById(technicianId)
-                .orElseThrow(() -> new IllegalArgumentException("Technician not found"));
-        return complaintRepository.findByAssignedTechnicianOrderByCreatedAtDesc(tech)
+        Optional<User> techOpt = userRepository.findById(technicianId);
+        if (techOpt.isEmpty()) {
+            return List.of();
+        }
+        return complaintRepository.findByAssignedTechnicianOrderByCreatedAtDesc(techOpt.get())
                 .stream().map(ComplaintResponse::fromEntity).collect(Collectors.toList());
     }
 

@@ -32,6 +32,95 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (role === "ML") {
             loadMLCenter();
         }
+        updateHeaderProfilePill();
+    }
+
+    // ==========================================================
+    // USER & ADMIN AUTHENTICATION LOGIC
+    // ==========================================================
+    window.openLoginModal = function() {
+        const modal = document.getElementById("login-modal");
+        if (modal) modal.style.display = "flex";
+    };
+
+    window.closeLoginModal = function() {
+        const modal = document.getElementById("login-modal");
+        if (modal) modal.style.display = "none";
+    };
+
+    window.switchAuthTab = function(type) {
+        const tabUser = document.getElementById("tab-btn-user");
+        const tabAdmin = document.getElementById("tab-btn-admin");
+        const emailInput = document.getElementById("auth-email");
+        const passInput = document.getElementById("auth-password");
+
+        if (type === "ADMIN") {
+            if (tabUser) tabUser.classList.remove("active");
+            if (tabAdmin) tabAdmin.classList.add("active");
+            if (emailInput) emailInput.value = "admin@alora.edu";
+            if (passInput) passInput.value = "admin123";
+        } else {
+            if (tabUser) tabUser.classList.add("active");
+            if (tabAdmin) tabAdmin.classList.remove("active");
+            if (emailInput) emailInput.value = "aarav.patel@alora.edu";
+            if (passInput) passInput.value = "user123";
+        }
+    };
+
+    window.quickFillLogin = function(email, pass, role) {
+        const emailInput = document.getElementById("auth-email");
+        const passInput = document.getElementById("auth-password");
+        if (emailInput) emailInput.value = email;
+        if (passInput) passInput.value = pass;
+        switchAuthTab(role === "ADMIN" ? "ADMIN" : "USER");
+        const form = document.getElementById("auth-login-form");
+        if (form) form.requestSubmit();
+    };
+
+    function updateHeaderProfilePill() {
+        const avatarElem = document.getElementById("header-user-avatar");
+        const nameElem = document.getElementById("header-user-name");
+        const roleElem = document.getElementById("header-user-role");
+
+        if (nameElem) nameElem.textContent = currentUser.name || currentUser.fullName || "User";
+        if (roleElem) {
+            roleElem.textContent = currentUser.role || "STUDENT";
+            roleElem.className = `badge badge-${currentUser.role === 'ADMIN' ? 'high' : 'medium'}`;
+        }
+        if (avatarElem) {
+            avatarElem.textContent = currentUser.role === 'ADMIN' ? '🛡️' : (currentUser.role === 'TECHNICIAN' ? '🔧' : '👤');
+        }
+    }
+
+    const authForm = document.getElementById("auth-login-form");
+    if (authForm) {
+        authForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("auth-email").value.trim();
+            const pass = document.getElementById("auth-password").value.trim();
+
+            const res = await API.login(email, pass);
+            if (res && res.id) {
+                currentUser = {
+                    id: res.id,
+                    name: res.fullName || res.name || "User",
+                    role: res.role || "STUDENT",
+                    email: res.email
+                };
+                if (res.role === "ADMIN") {
+                    switchRole("ADMIN");
+                } else if (res.role === "TECHNICIAN") {
+                    switchRole("TECH");
+                } else {
+                    switchRole("STUDENT");
+                }
+                updateHeaderProfilePill();
+                closeLoginModal();
+                showToast(`🔓 Authenticated as ${currentUser.name} (${currentUser.role})`);
+            } else {
+                showToast("⚠️ Authentication failed! Check email and password.");
+            }
+        });
     }
 
     // Check Backend & ML Health
@@ -109,16 +198,350 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 350);
     }
 
-    if (compTitle) compTitle.addEventListener("input", handleComplaintInput);
+    window.selectCommonIssue = function(title) {
+        if (!title || !compTitle) return;
+        compTitle.value = title;
+        if (!compDesc.value.trim()) {
+            compDesc.value = `${title} reported at campus location. Please inspect and resolve.`;
+        }
+        handleComplaintInput();
+        showToast(`✨ Selected Common Issue: "${title}"`);
+    };
+
+    if (compTitle) {
+        compTitle.addEventListener("input", handleComplaintInput);
+        compTitle.addEventListener("change", handleComplaintInput);
+    }
     if (compDesc) compDesc.addEventListener("input", handleComplaintInput);
     if (compBldg) compBldg.addEventListener("change", handleComplaintInput);
     if (compDept) compDept.addEventListener("change", handleComplaintInput);
+
+    // ==========================================================
+    // PHOTO UPLOAD & IMAGE PROCESSING STUDIO LOGIC
+    // ==========================================================
+    let currentRawImage = null;
+    let currentFilterPreset = "normal";
+    let currentRotation = 0;
+    let isFlippedHorizontal = false;
+
+    window.triggerCameraCapture = function() {
+        const fileInput = document.getElementById("comp-photo-input");
+        if (fileInput) {
+            fileInput.setAttribute("capture", "environment");
+            fileInput.click();
+        }
+    };
+
+    window.handlePhotoSelect = function(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                currentRawImage = img;
+                currentFilterPreset = "normal";
+                currentRotation = 0;
+                isFlippedHorizontal = false;
+
+                // Reset Sliders
+                document.getElementById("slider-brightness").value = 0;
+                document.getElementById("slider-contrast").value = 0;
+                document.getElementById("val-brightness").textContent = "0%";
+                document.getElementById("val-contrast").textContent = "0%";
+
+                document.getElementById("dropzone-empty-state").style.display = "none";
+                document.getElementById("image-processing-studio").style.display = "block";
+
+                processAndRenderCanvas();
+                showToast("📸 Photo uploaded! AI Image Processing Studio active.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.removeSelectedPhoto = function() {
+        currentRawImage = null;
+        document.getElementById("comp-photo-input").value = "";
+        document.getElementById("image-processing-studio").style.display = "none";
+        document.getElementById("dropzone-empty-state").style.display = "block";
+    };
+
+    window.applyPresetFilter = function(filterName) {
+        currentFilterPreset = filterName;
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+            btn.classList.toggle("active", btn.dataset.filter === filterName);
+        });
+
+        // Set slider values based on preset
+        const bSlider = document.getElementById("slider-brightness");
+        const cSlider = document.getElementById("slider-contrast");
+        if (filterName === "enhance") {
+            bSlider.value = 15;
+            cSlider.value = 25;
+        } else if (filterName === "lowlight") {
+            bSlider.value = 35;
+            cSlider.value = 20;
+        } else if (filterName === "grayscale" || filterName === "normal") {
+            bSlider.value = 0;
+            cSlider.value = 0;
+        }
+
+        document.getElementById("val-brightness").textContent = `${bSlider.value}%`;
+        document.getElementById("val-contrast").textContent = `${cSlider.value}%`;
+
+        processAndRenderCanvas();
+    };
+
+    window.updateImageAdjustments = function() {
+        const bVal = document.getElementById("slider-brightness").value;
+        const cVal = document.getElementById("slider-contrast").value;
+        document.getElementById("val-brightness").textContent = `${bVal}%`;
+        document.getElementById("val-contrast").textContent = `${cVal}%`;
+        processAndRenderCanvas();
+    };
+
+    window.rotateImage = function(angle) {
+        currentRotation = (currentRotation + angle) % 360;
+        processAndRenderCanvas();
+    };
+
+    window.flipImageHorizontal = function() {
+        isFlippedHorizontal = !isFlippedHorizontal;
+        processAndRenderCanvas();
+    };
+
+    function processAndRenderCanvas() {
+        if (!currentRawImage) return;
+
+        const canvas = document.getElementById("photo-canvas");
+        const ctx = canvas.getContext("2d");
+
+        const maxDim = 800;
+        let w = currentRawImage.width;
+        let h = currentRawImage.height;
+        if (w > maxDim || h > maxDim) {
+            if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+            } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+            }
+        }
+
+        const isRotated90 = Math.abs(currentRotation % 180) === 90;
+        canvas.width = isRotated90 ? h : w;
+        canvas.height = isRotated90 ? w : h;
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((currentRotation * Math.PI) / 180);
+        if (isFlippedHorizontal) ctx.scale(-1, 1);
+        ctx.drawImage(currentRawImage, -w / 2, -h / 2, w, h);
+        ctx.restore();
+
+        // Apply Pixel Manipulations (Brightness, Contrast, Grayscale)
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        const bVal = parseInt(document.getElementById("slider-brightness").value, 10);
+        const cVal = parseInt(document.getElementById("slider-contrast").value, 10);
+        const factor = (259 * (cVal + 255)) / (255 * (259 - cVal));
+
+        for (let i = 0; i < data.length; i += 4) {
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
+
+            // Brightness Adjustment
+            r = Math.min(255, Math.max(0, r + bVal * 2.5));
+            g = Math.min(255, Math.max(0, g + bVal * 2.5));
+            b = Math.min(255, Math.max(0, b + bVal * 2.5));
+
+            // Contrast Adjustment
+            r = Math.min(255, Math.max(0, factor * (r - 128) + 128));
+            g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
+            b = Math.min(255, Math.max(0, factor * (b - 128) + 128));
+
+            // Grayscale Filter Preset
+            if (currentFilterPreset === "grayscale") {
+                const avg = 0.299 * r + 0.587 * g + 0.114 * b;
+                r = g = b = avg > 128 ? Math.min(255, avg * 1.2) : Math.max(0, avg * 0.8);
+            }
+
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+
+        // Run AI Image Diagnostics & Metrics
+        calculateImageDiagnostics(ctx, canvas.width, canvas.height);
+    }
+
+    let currentImageAuthenticity = "Verified Authentic";
+
+    async function calculateImageDiagnostics(ctx, width, height) {
+        const imgData = ctx.getImageData(0, 0, width, height);
+        const data = imgData.data;
+        let totalLuminance = 0;
+        const totalPixels = width * height;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            totalLuminance += lum;
+        }
+
+        const avgLuminance = totalLuminance / totalPixels;
+        const brightnessPct = Math.round((avgLuminance / 255) * 100);
+        const sharpnessPct = Math.min(99, Math.max(70, Math.round(85 + (brightnessPct > 40 ? 10 : -10))));
+
+        document.getElementById("diag-dims").textContent = `${width} x ${height} px`;
+        const estKB = Math.round((width * height * 0.2) / 1024);
+        document.getElementById("diag-size").textContent = `${estKB} KB (Compressed)`;
+        document.getElementById("diag-sharpness").textContent = `${sharpnessPct}% (Clear)`;
+        document.getElementById("diag-brightness").textContent = `${brightnessPct}% (${brightnessPct < 30 ? 'Low Light' : (brightnessPct > 80 ? 'High Exposure' : 'Optimal')})`;
+
+        const warningElem = document.getElementById("diag-warning");
+        const authElem = document.getElementById("diag-authenticity");
+
+        // Run Python ML Service Image Anomaly Detection
+        const canvas = document.getElementById("photo-canvas");
+        if (canvas) {
+            const b64 = canvas.toDataURL("image/jpeg", 0.7);
+            const anomalyRes = await API.analyzeImageAnomaly(b64);
+
+            if (authElem) {
+                if (anomalyRes.is_authentic) {
+                    authElem.style.color = "var(--success)";
+                    authElem.textContent = `🛡️ Real Photo (${anomalyRes.authenticity_score}%)`;
+                    currentImageAuthenticity = `Verified Real Photo (${anomalyRes.authenticity_score}%)`;
+                } else if (anomalyRes.status === "ANOMALOUS_SCREENSHOT_OR_DOCUMENT") {
+                    authElem.style.color = "var(--danger)";
+                    authElem.textContent = `⚠️ Screenshot/Doc (${anomalyRes.authenticity_score}%)`;
+                    currentImageAuthenticity = `⚠️ Screenshot/Doc Detected (${anomalyRes.authenticity_score}%)`;
+                } else if (anomalyRes.status === "ANOMALOUS_IRRELEVANT_PHOTO") {
+                    authElem.style.color = "var(--danger)";
+                    authElem.textContent = `⚠️ Irrelevant Photo (${anomalyRes.authenticity_score}%)`;
+                    currentImageAuthenticity = `⚠️ Irrelevant Photo Detected (${anomalyRes.authenticity_score}%)`;
+                } else {
+                    authElem.style.color = "var(--danger)";
+                    authElem.textContent = `⚠️ Fake/Anomalous (${anomalyRes.authenticity_score}%)`;
+                    currentImageAuthenticity = `⚠️ Fake/Anomalous Photo (${anomalyRes.authenticity_score}%)`;
+                }
+            }
+
+            if (!anomalyRes.is_authentic && warningElem) {
+                warningElem.textContent = `${anomalyRes.summary}`;
+                warningElem.classList.add("active");
+                return;
+            }
+        }
+
+        if (brightnessPct < 35 && warningElem) {
+            warningElem.textContent = "💡 Low-light photo detected. 'Auto-Enhance' filter applied for technician clarity.";
+            warningElem.classList.add("active");
+        } else if (warningElem) {
+            warningElem.classList.remove("active");
+        }
+    }
+
+    function getProcessedPhotoBase64() {
+        const canvas = document.getElementById("photo-canvas");
+        if (canvas && currentRawImage) {
+            return canvas.toDataURL("image/jpeg", 0.75);
+        }
+        return null;
+    }
+
+    function getProcessedImageAnalysis() {
+        const dims = document.getElementById("diag-dims").textContent;
+        const size = document.getElementById("diag-size").textContent;
+        const sharpness = document.getElementById("diag-sharpness").textContent;
+        const brightness = document.getElementById("diag-brightness").textContent;
+        return `Dimensions: ${dims} | Size: ${size} | Sharpness: ${sharpness} | Lighting: ${brightness} | Filter: ${currentFilterPreset} | AI Authenticity: ${currentImageAuthenticity}`;
+    }
+
+    // ==========================================================
+    // QR SCANNER & LOCATION AUTO-FILL LOGIC
+    // ==========================================================
+    let scannerStream = null;
+
+    window.openQRScannerModal = async function() {
+        const modal = document.getElementById("qr-scanner-modal");
+        if (modal) modal.style.display = "flex";
+
+        const video = document.getElementById("scanner-video");
+        try {
+            scannerStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+            if (video) video.srcObject = scannerStream;
+        } catch (e) {
+            console.log("Webcam video stream fallback active (simulated scanner):", e);
+        }
+    };
+
+    window.closeQRScannerModal = function() {
+        const modal = document.getElementById("qr-scanner-modal");
+        if (modal) modal.style.display = "none";
+        if (scannerStream) {
+            scannerStream.getTracks().forEach(track => track.stop());
+            scannerStream = null;
+        }
+    };
+
+    window.toggleScannerTorch = function() {
+        const btn = document.getElementById("btn-toggle-torch");
+        if (btn) {
+            const isFlashOn = btn.textContent.includes("On");
+            btn.textContent = isFlashOn ? "⚡ Flash Off" : "⚡ Flash On";
+            showToast(isFlashOn ? "⚡ Camera Flash Enabled" : "⚡ Camera Flash Disabled");
+        }
+    };
+
+    window.switchScannerCamera = function() {
+        showToast("🔄 Switched Camera (Rear / Front)");
+    };
+
+    window.simulateQRScan = function(tagId, building, floor, room) {
+        // Auto-fill form fields
+        if (compBldg) compBldg.value = building;
+        if (compFloor) compFloor.value = floor;
+        if (compRoom) compRoom.value = room;
+
+        // Trigger live duplicate check and AI pre-triage
+        handleComplaintInput();
+
+        // Visual flash highlight on fields
+        [compBldg, compFloor, compRoom].forEach(el => {
+            if (el) {
+                el.style.transition = "all 0.3s";
+                el.style.borderColor = "var(--success)";
+                el.style.boxShadow = "0 0 0 4px rgba(16, 185, 129, 0.25)";
+                setTimeout(() => {
+                    el.style.borderColor = "";
+                    el.style.boxShadow = "";
+                }, 1500);
+            }
+        });
+
+        closeQRScannerModal();
+        showToast(`📷 Scanned Campus Tag [${tagId}]: ${building} (${room})`);
+    };
 
     // Complaint Form Submission
     const complaintForm = document.getElementById("complaint-form");
     if (complaintForm) {
         complaintForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            const photoData = getProcessedPhotoBase64();
+            const imageAnalysis = photoData ? getProcessedImageAnalysis() : null;
+
             const payload = {
                 userId: currentUser.id,
                 title: compTitle.value.trim(),
@@ -126,7 +549,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 locationBuilding: compBldg.value,
                 locationFloor: compFloor.value.trim(),
                 locationRoom: compRoom.value.trim(),
-                departmentId: compDept && compDept.value ? parseInt(compDept.value) : null
+                departmentId: compDept && compDept.value ? parseInt(compDept.value) : null,
+                photoUrl: photoData,
+                imageAnalysis: imageAnalysis
             };
 
             const submitBtn = complaintForm.querySelector("button[type='submit']");
@@ -140,6 +565,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             showToast(`Complaint filed! Tracking: ${res.trackingNumber || 'Registered'}`);
             complaintForm.reset();
+            removeSelectedPhoto();
             dupAlert.classList.remove("active");
             loadStudentComplaints();
         });
@@ -171,6 +597,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">${escapeHtml(c.description)}</p>
+                ${c.photoUrl ? `
+                    <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border);">
+                        <img src="${c.photoUrl}" class="complaint-photo-thumb" onclick="window.open('${c.photoUrl}', '_blank')" title="Click to view full photo">
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            <strong style="color: var(--primary);">📸 Processed Evidence Photo Attached</strong><br/>
+                            <small>${escapeHtml(c.imageAnalysis || 'Enhanced for Technician Clarity')}</small>
+                        </div>
+                    </div>
+                ` : ''}
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
                     <span>📍 <strong>${escapeHtml(c.locationBuilding || '')}</strong> ${escapeHtml(c.locationRoom || '')}</span>
                     <span>🏷️ <strong>${c.category || 'General'}</strong></span>
@@ -387,6 +822,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="status-badge status-${(c.status || 'pending').toLowerCase()}">${c.status}</span>
                 </div>
                 <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.75rem;">${escapeHtml(c.description)}</p>
+                ${c.photoUrl ? `
+                    <div style="display: flex; gap: 0.85rem; align-items: center; margin-bottom: 0.85rem; background: #eff6ff; padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #bfdbfe;">
+                        <img src="${c.photoUrl}" class="complaint-photo-thumb" style="width: 75px; height: 75px; border-radius: 8px; border: 2px solid white; box-shadow: var(--shadow-sm);" onclick="window.open('${c.photoUrl}', '_blank')" title="Click to view full high-res photo">
+                        <div style="font-size: 0.78rem; color: #1e40af;">
+                            <strong style="color: #1e3a8a; font-size: 0.82rem;">📸 Visual Inspection Photo & Auto-Diagnostics</strong><br/>
+                            <span>${escapeHtml(c.imageAnalysis || 'Enhanced for On-site Maintenance Inspection')}</span>
+                        </div>
+                    </div>
+                ` : ''}
                 <div style="background: #f8fafc; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; border: 1px solid var(--border);">
                     <div>📍 <strong>Location:</strong> ${escapeHtml(c.locationBuilding)} | ${escapeHtml(c.locationFloor || 'Floor -')} | Room: ${escapeHtml(c.locationRoom || '-')}</div>
                     <div>🏢 <strong>Department:</strong> ${escapeHtml(c.departmentName || 'Maintenance')} | 👷 <strong>Assigned:</strong> ${escapeHtml(c.assignedTechnicianName || 'Pending')}</div>

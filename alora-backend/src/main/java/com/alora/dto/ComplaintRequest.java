@@ -21,6 +21,8 @@ public class ComplaintRequest {
     private String locationRoom;
     private Long departmentId;
     private String category;
+    private String photoUrl;
+    private String imageAnalysis;
 
     public ComplaintRequest() {}
 
@@ -47,4 +49,10 @@ public class ComplaintRequest {
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+
+    public String getImageAnalysis() { return imageAnalysis; }
+    public void setImageAnalysis(String imageAnalysis) { this.imageAnalysis = imageAnalysis; }
 }
