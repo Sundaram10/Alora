@@ -1,7 +1,8 @@
 const API = (function() {
     const HOST = (typeof window !== "undefined" && window.location && window.location.hostname) ? window.location.hostname : "127.0.0.1";
-    const BACKEND_URL = `http://${HOST}:8080`;
-    const ML_URL = `http://${HOST}:8001`;
+    const BACKEND_URL = (typeof window !== "undefined" && window.ALORA_BACKEND_URL) || localStorage.getItem("ALORA_BACKEND_URL") || `http://${HOST}:8080`;
+    const ML_URL = (typeof window !== "undefined" && window.ALORA_ML_URL) || localStorage.getItem("ALORA_ML_URL") || `http://${HOST}:8001`;
+
 
     function safeFetch(url, options = {}, timeoutMs = 6000) {
         try {

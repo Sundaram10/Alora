@@ -1,0 +1,31 @@
+services:
+  # ALORA FastAPI ML Service
+  - type: web
+    name: alora-ml-service
+    env: docker
+    dockerContext: alora-ml-service
+    dockerfilePath: alora-ml-service/Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 8001
+      - key: HOST
+        value: 0.0.0.0
+
+  # ALORA Spring Boot Backend Service
+  - type: web
+    name: alora-backend
+    env: docker
+    dockerContext: alora-backend
+    dockerfilePath: alora-backend/Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: ML_SERVICE_URL
+        fromService:
+          type: web
+          name: alora-ml-service
+          property: hostport
